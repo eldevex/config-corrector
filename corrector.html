@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"> <!--Строчка, которая делает магию-->
+  <title>Обработка конфигов из файла и буфера</title>
+  
+  <style>
+    body {
+      font-family: sans-serif;
+      padding: 20px;
+      max-width: 700px;
+      margin: auto;
+    }
+    input[type="file"], textarea, button {
+      margin-top: 10px;
+    }
+    textarea {
+      width: 100%;
+      height: 120px;
+      padding: 10px;
+      font-size: 16px;
+    }
+    button {
+      padding: 10px 20px;
+      font-size: 16px;
+      margin-right: 10px;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+<h3 style="color:blue;"> Конфиг корректор от бобра </h3>
+  <h2>1. Вставка вручную или загрузка файла</h2>
+
+  <label for="manualInput">Вставьте текст вручную:</label><br>
+  <textarea id="manualInput" placeholder="Вставьте текст сюда..."></textarea><br>
+  <button onclick="processManualInput()">Обработать текст</button>
+
+  <hr>
+
+  <label for="fileInput">Или загрузите .txt файл:</label><br>
+  <input type="file" id="fileInput" accept=".txt"><br>
+
+  <h3>2. Обработанный результат:</h3>
+  <textarea id="resultText" placeholder="Обработанный текст..."></textarea><br>
+
+  <button onclick="copyText()">Скопировать</button>
+  <button onclick="downloadProcessed()">Скачать файл</button>
+
+  <script>
+    let processedText = '';
+
+    // Обработка текста (общая функция)
+    function processText(text) {
+  return text
+    .replace(/(?<!\s)(vmess:)/g, ' $1')
+    .replace(/(?<!\s)(vless:)/g, ' $1')
+    .replace(/(?<!\s)(?<!vme)(?<!vle)(ss:)/g, ' $1')
+    .replace(/(?<!\s)(socks5:)/g, ' $1')
+    .replace(/(?<!\s)(https:)/g, ' $1')
+    .replace(/(?<!\s)(trojan:)/g, ' $1')
+    .replace(/(?<!\s)(hysteria2:)/g, ' $1');
+}
+
+    // Обработка вручную вставленного текста
+    function processManualInput() {
+      const manualText = document.getElementById('manualInput').value;
+      if (!manualText.trim()) {
+        alert("Поле пустое. Вставьте текст.");
+        return;
+      }
+      processedText = processText(manualText);
+      updateDisplay();
+    }
+
+    // Обработка файла
+    document.getElementById('fileInput').addEventListener('change', function () {
+      const file = this.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = function (e) {
+        const text = e.target.result;
+        processedText = processText(text);
+        updateDisplay();
+      };
+
+      reader.readAsText(file);
+    });
+
+    // Обновление отображения
+    function updateDisplay() {
+      document.getElementById('resultText').value = processedText;
+    }
+
+    // Копирование
+    function copyText() {
+      const textArea = document.getElementById('resultText');
+      textArea.select();
+      document.execCommand("copy");
+      alert("Скопировано!");
+    }
+
+    // Скачивание
+    function downloadProcessed() {
+      const text = document.getElementById('resultText').value;
+      if (!text) {
+        alert("Нет текста для сохранения.");
+        return;
+      }
+
+      const blob = new Blob([text], { type: 'text/plain' });
+      const link = document.createElement('a');
+      link.href = URL.createObjectURL(blob);
+      link.download = 'обработанный_текст.txt';
+      link.click();
+    }
+  </script>
+
+</body>
+</html>
